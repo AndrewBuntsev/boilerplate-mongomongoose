@@ -42,6 +42,28 @@ app.get('/', function(req, res) {
   res.sendFile(path.join(__dirname, 'views', 'index.html'));
 });
 
+app.get('/create-and-save-person', function(req, res) {
+  console.log('aa');
+  // in case of incorrect function use wait timeout then respond
+  var t = setTimeout(() => { next({message: 'timeout'}) }, timeout);
+  createPerson(function(err, data) {
+    console.log('data: %o', data);
+    clearTimeout(t);
+    if(err) { return (next(err)); }
+    if(!data) {
+      console.log('Missing `done()` argument');
+      return next({message: 'Missing callback argument'});
+    }
+     Person.findById(data._id, function(err, pers) {
+       if(err) { return (next(err)); }
+       res.json(pers);
+       pers.remove();
+     });
+  });
+});
+
+
+
 router.get('/file/*?', function(req, res, next) {
   if(req.params[0] === '.env') { return next({status: 401, message: 'ACCESS DENIED'}) }
   fs.readFile(path.join(__dirname, req.params[0]), function(err, data){

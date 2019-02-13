@@ -1,89 +1,27 @@
-/**********************************************
-* 3. FCC Mongo & Mongoose Challenges
-* ==================================
-***********************************************/
-
-/** # MONGOOSE SETUP #
-/*  ================== */
-
-/** 1) Install & Set up mongoose */
-
-// Add `mongodb` and `mongoose` to the project's `package.json`. Then require 
-// `mongoose`. Store your **mLab** database URI in the private `.env` file 
-// as `MONGO_URI`. Connect to the database using `mongoose.connect(<Your URI>)`
-
 require('dotenv').config();
 
 var mongoose = require('mongoose');
 mongoose.connect(process.env.MONGO_URI);
 
 
-/** # SCHEMAS and MODELS #
-/*  ====================== */
+var personSchema = new mongoose.Schema({
+  name: {type: String, required: true},
+  age: Number,
+  favoriteFoods: [[String]]
+});
 
-/** 2) Create a 'Person' Model */
+var Person = mongoose.model('Person', personSchema);
 
-// First of all we need a **Schema**. Each schema maps to a MongoDB collection
-// and defines the shape of the documents within that collection. Schemas are
-// building block for Models. They can be nested to create complex models,
-// but in this case we'll keep things simple. A model allows you to create
-// instances of your objects, called **documents**.
 
-// Create a person having this prototype :
 
-// - Person Prototype -
-// --------------------
-// name : string [required]
-// age :  number
-// favoriteFoods : array of strings (*)
-
-// Use the mongoose basic *schema types*. If you want you can also add more
-// fields, use simple validators like `required` or `unique`, and set
-// `default` values. See the [mongoose docs](http://mongoosejs.com/docs/guide.html).
-
-// <Your code here >
-
-var Person /* = <Your Model> */
-
-// **Note**: GoMix is a real server, and in real servers interactions with
-// the db are placed in handler functions, to be called when some event happens
-// (e.g. someone hits an endpoint on your API). We'll follow the same approach
-// in these exercises. The `done()` function is a callback that tells us that
-// we can proceed after completing an asynchronous operation such as inserting,
-// searching, updating or deleting. It's following the Node convention and
-// should be called as `done(null, data)` on success, or `done(err)` on error.
-// **Warning** - When interacting with remote services, **errors may occur** !
-
-// - Example -
-// var someFunc = function(done) {
-//   ... do something (risky) ...
-//   if(error) return done(error);
-//   done(null, result);
-// };
-
-/** # [C]RUD part I - CREATE #
-/*  ========================== */
-
-/** 3) Create and Save a Person */
-
-// Create a `document` instance using the `Person` constructor you build before.
-// Pass to the constructor an object having the fields `name`, `age`,
-// and `favoriteFoods`. Their types must be conformant to the ones in
-// the Person `Schema`. Then call the method `document.save()` on the returned
-// document instance, passing to it a callback using the Node convention.
-// This is a common pattern, all the **CRUD** methods take a callback 
-// function like this as the last argument.
-
-// - Example -
-// ...
-// person.save(function(err, data) {
-//    ...do your stuff here...
-// });
 
 var createAndSavePerson = function(done) {
-  
-  done(null /*, data*/);
-
+  let person = new Person({name: 'Jonh', age: 25, favoriteFoods: ['Tea', 'Fish', 'Pasta']});
+  person.save(function(err, data){
+    console.log('data: %o', data);
+    if(err) return done(err);
+    return done(null, data);
+  });
 };
 
 /** 4) Create many People with `Model.create()` */
@@ -96,8 +34,11 @@ var createAndSavePerson = function(done) {
 // 'arrayOfPeople'.
 
 var createManyPeople = function(arrayOfPeople, done) {
-    
-    done(null/*, data*/);
+    Person.create(arrayOfPeople, function(err, data){
+      console.log('data: %o', data);
+      if(err) return done(err);
+      return done(null, data);
+    })
     
 };
 
@@ -113,9 +54,11 @@ var createManyPeople = function(arrayOfPeople, done) {
 // Use the function argument `personName` as search key.
 
 var findPeopleByName = function(personName, done) {
-  
-  done(null/*, data*/);
-
+  Person.find({name: personName}, function(err, data){
+    console.log('data: %o', data);
+    if(err) return done(err);
+    return done(null, data);
+  });
 };
 
 /** 6) Use `Model.findOne()` */
@@ -129,7 +72,11 @@ var findPeopleByName = function(personName, done) {
 
 var findOneByFood = function(food, done) {
 
-  done(null/*, data*/);
+  Person.findOne({favoriteFoods: food}, function(err, data){
+    console.log('data: %o', data);
+    if(err) return done(err);
+    return done(null, data);
+  });
   
 };
 
@@ -143,9 +90,11 @@ var findOneByFood = function(food, done) {
 // Use the function argument 'personId' as search key.
 
 var findPersonById = function(personId, done) {
-  
-  done(null/*, data*/);
-  
+  Person.findById(personId, function(err, data){
+    console.log('data: %o', data);
+    if(err) return done(err);
+    return done(null, data);
+  });
 };
 
 /** # CR[U]D part III - UPDATE # 
@@ -175,29 +124,26 @@ var findPersonById = function(personId, done) {
 
 var findEditThenSave = function(personId, done) {
   var foodToAdd = 'hamburger';
-  
-  done(null/*, data*/);
+  Person.findById(personId, function(err, data){
+    if(err) return done(err);
+    data.favoriteFoods.push(foodToAdd);
+    data.save(function(err, data){
+      console.log('data: %o', data);
+      if(err) return done(err);
+      return done(null, data);
+    });
+  });
 };
 
-/** 9) New Update : Use `findOneAndUpdate()` */
 
-// Recent versions of `mongoose` have methods to simplify documents updating.
-// Some more advanced features (i.e. pre/post hooks, validation) beahve
-// differently with this approach, so the 'Classic' method is still useful in
-// many situations. `findByIdAndUpdate()` can be used when searching by Id.
-//
-// Find a person by `name` and set her age to `20`. Use the function parameter
-// `personName` as search key.
-//
-// Hint: We want you to return the **updated** document. In order to do that
-// you need to pass the options document `{ new: true }` as the 3rd argument
-// to `findOneAndUpdate()`. By default the method
-// passes the unmodified object to its callback.
 
 var findAndUpdate = function(personName, done) {
   var ageToSet = 20;
 
-  done(null/*, data*/);
+  Person.findOneAndUpdate({name: personName}, {$set: {age: ageToSet}}, {new: true}, function(err, data){
+    if (err) return done(err);
+    return done(null, data);
+  })
 };
 
 /** # CRU[D] part IV - DELETE #
@@ -211,9 +157,10 @@ var findAndUpdate = function(personName, done) {
 // As usual, use the function argument `personId` as search key.
 
 var removeById = function(personId, done) {
-  
-  done(null/*, data*/);
-    
+  Person.findByIdAndDelete(personId, function(err, data){
+    if (err) return done(err);
+    return done(null, data);
+  })
 };
 
 /** 11) Delete many People */
@@ -229,7 +176,10 @@ var removeById = function(personId, done) {
 var removeManyPeople = function(done) {
   var nameToRemove = "Mary";
 
-  done(null/*, data*/);
+  Person.remove({name: nameToRemove}, function(err, data){
+    if (err) return done(err);
+    return done(null, data);
+  });
 };
 
 /** # C[R]UD part V -  More about Queries # 
@@ -252,8 +202,15 @@ var removeManyPeople = function(done) {
 
 var queryChain = function(done) {
   var foodToSearch = "burrito";
-  
-  done(null/*, data*/);
+  let query = Person
+    .find({favoriteFoods: foodToSearch})
+    .sort({name: -1})
+    .limit(2)
+    .select('name favoriteFoods');
+  query.exec(function(err, data){
+    if (err) return done(err);
+    return done(null, data);
+  });
 };
 
 /** **Well Done !!**

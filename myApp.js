@@ -3,6 +3,17 @@ require('dotenv').config();
 var mongoose = require('mongoose');
 mongoose.connect(process.env.MONGO_URI);
 
+/*
+const EmptyModel = mongoose.model('EmptyModel', new mongoose.Schema({}), 'test');
+EmptyModel.find({}, function(err, data){ 
+      if (err) {
+        console.error(err);
+      } else {
+        console.log(data);
+      }
+  });
+*/
+
 
 var personSchema = new mongoose.Schema({
   name: {type: String, required: true},
